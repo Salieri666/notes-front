@@ -1,0 +1,76 @@
+.hero-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 100vh;
+  padding: 0 10%;
+  background-color: #fdfdfd; // Чистый, почти белый фон
+  gap: 40px;
+
+  .hero-content {
+    flex: 1;
+    max-width: 600px;
+
+    h1 {
+      font-size: 3.5rem;
+      font-weight: 800;
+      line-height: 1.2; // ИСПРАВЛЕНИЕ: именно это не дает тексту наезжать друг на друга
+      color: #1f2937;
+      margin-bottom: 1.5rem;
+
+      .highlight {
+        color: #3f51b5; // Цвет первичной кнопки Angular Material
+      }
+    }
+
+    p {
+      font-size: 1.25rem;
+      line-height: 1.6;
+      color: #6b7280;
+      margin-bottom: 2.5rem;
+    }
+
+    .cta-button {
+      padding: 24px 40px; // Делаем кнопку большой и кликабельной
+      font-size: 1.1rem;
+      border-radius: 8px; // Современное легкое скругление
+    }
+  }
+
+  .hero-image {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+
+    img {
+      width: 100%;
+      max-width: 500px;
+      // Легкая анимация, чтобы страница казалась живой
+      animation: float 6s ease-in-out infinite;
+    }
+  }
+}
+
+// Адаптация под телефоны и планшеты
+@media (max-width: 960px) {
+  .hero-section {
+    flex-direction: column; // Ставим текст над картинкой
+    text-align: center;
+    padding: 100px 5% 50px;
+
+    .hero-content h1 {
+      font-size: 2.5rem;
+    }
+
+    .hero-image {
+      margin-top: 40px;
+    }
+  }
+}
+
+// Ключевые кадры для анимации парения
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
+  100% { transform: translateY(0px); }
+}

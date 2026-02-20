@@ -1,0 +1,43 @@
+.table-wrapper {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+
+  .table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+
+    h1 { margin: 0; font-weight: 300; }
+  }
+
+  // Контейнер для таблицы и лоадера
+  .table-container {
+    position: relative; // База для абсолютного позиционирования лоадера
+
+    mat-progress-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 10;
+    }
+  }
+
+  table {
+    width: 100%;
+
+    // Плавное затухание таблицы при загрузке
+    &.isLoading {
+      opacity: 0.6;
+      pointer-events: none;
+    }
+  }
+
+  // Твои кнопки действий — возвращаем их на место (справа)
+  .action-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px; // Немного отступа между иконками
+  }
+}
