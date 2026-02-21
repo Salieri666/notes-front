@@ -1,6 +1,12 @@
 <div class="table-wrapper">
   <div class="table-header">
-    <h1>Заметки</h1>
+    <div class="title-section">
+      <button mat-icon-button routerLink="/" matTooltip="На главную" class="back-button">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <h1>Заметки</h1>
+    </div>
+
     <button mat-raised-button color="primary" (click)="openEdit()">
       <mat-icon>add</mat-icon> Создать заметку
     </button>

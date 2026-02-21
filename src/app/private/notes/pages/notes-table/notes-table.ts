@@ -6,6 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import {RouterLink, RouterModule} from '@angular/router'; // Добавь это
 
 import { Api } from '../../../../_api/api';
 import { NoteDtoDto } from '../../../../_api/models/note-dto-dto';
@@ -26,7 +27,8 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
     MatIconModule,
     MatDialogModule,
     MatTooltipModule,
-    MatProgressBarModule
+    MatProgressBarModule,
+    RouterLink
   ]
 })
 export class NotesTable implements OnInit {

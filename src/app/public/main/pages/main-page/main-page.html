@@ -1,15 +1,32 @@
 <section class="hero-section">
   <div class="hero-content">
-    <h1>Организуйте свои мысли <br/>в <span class="highlight">Менеджере Заметок</span></h1>
-    <p>Простой, быстрый и удобный инструмент для хранения ваших идей, списков и важных записей. Всё по полочкам и всегда под рукой.</p>
 
-    <button mat-flat-button color="primary" class="cta-button" routerLink="/notes">
-      Начать работу
-      <mat-icon iconPositionEnd>arrow_forward</mat-icon>
-    </button>
+    @if (isLoggedIn()) {
+      <h1>С возвращением, <span class="highlight">{{ userName() }}</span>!</h1>
+      <p>Ваш менеджер заметок готов к работе. Продолжайте с того места, где остановились.</p>
+
+      <div style="display: flex; gap: 1rem;">
+        <button mat-flat-button color="primary" class="cta-button" routerLink="/notes">
+          Перейти к заметкам
+          <mat-icon iconPositionEnd>arrow_forward</mat-icon>
+        </button>
+        <button mat-stroked-button color="warn" class="cta-button" (click)="logout()">
+          Выйти
+        </button>
+      </div>
+    } @else {
+      <h1>Организуйте свои мысли <br/>в <span class="highlight">Менеджере Заметок</span></h1>
+      <p>Простой, быстрый и безопасный инструмент для хранения ваших идей. Войдите в систему для начала работы.</p>
+
+      <button mat-flat-button color="primary" class="cta-button" (click)="login()">
+        Войти через Keycloak
+        <mat-icon iconPositionEnd>login</mat-icon>
+      </button>
+    }
+
   </div>
 
   <div class="hero-image">
-    <img src="https://illustrations.popsy.co/amber/taking-notes.svg" alt="Человек пишет заметки">
+    <img src="https://illustrations.popsy.co/amber/taking-notes.svg" alt="Иллюстрация">
   </div>
 </section>

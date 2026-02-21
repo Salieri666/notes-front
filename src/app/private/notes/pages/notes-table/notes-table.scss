@@ -3,18 +3,44 @@
   max-width: 1200px;
   margin: 0 auto;
 
+  // Шапка таблицы: Заголовок слева, Кнопка создания справа
   .table-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 1.5rem;
 
-    h1 { margin: 0; font-weight: 300; }
+    // Секция заголовка: Кнопка назад + Текст
+    .title-section {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      h1 {
+        margin: 0;
+        font-weight: 300;
+        color: #333;
+      }
+
+      .back-button {
+        color: #757575;
+        transition: all 0.2s ease-in-out;
+
+        &:hover {
+          color: #3f51b5; // Цвет основной темы
+          transform: translateX(-4px); // Эффект движения назад
+          background-color: rgba(0, 0, 0, 0.04);
+        }
+      }
+    }
   }
 
-  // Контейнер для таблицы и лоадера
+  // Контейнер для таблицы с тенью и лоадером
   .table-container {
-    position: relative; // База для абсолютного позиционирования лоадера
+    position: relative; // База для позиционирования лоадера
+    background: white;
+    border-radius: 8px;
+    overflow: hidden; // Чтобы углы лоадера не вылезали за скругления
 
     mat-progress-bar {
       position: absolute;
@@ -26,18 +52,48 @@
 
   table {
     width: 100%;
+    transition: opacity 0.3s ease;
 
-    // Плавное затухание таблицы при загрузке
+    // Состояние загрузки: приглушаем таблицу и блокируем клики
     &.isLoading {
-      opacity: 0.6;
+      opacity: 0.5;
       pointer-events: none;
+    }
+
+    // Стили заголовков колонок
+    th.mat-mdc-header-cell {
+      background-color: #f9fafb;
+      color: #4b5563;
+      font-weight: 600;
+    }
+
+    // Стили ячеек
+    td.mat-mdc-cell {
+      color: #1f2937;
     }
   }
 
-  // Твои кнопки действий — возвращаем их на место (справа)
+  // Кнопки действий (Редактировать/Удалить) в самой таблице
   .action-buttons {
     display: flex;
-    justify-content: flex-end;
-    gap: 8px; // Немного отступа между иконками
+    justify-content: flex-end; // Всегда прижаты к правому краю ячейки
+    gap: 4px;
+  }
+}
+
+// Адаптивность для мобильных устройств
+@media (max-width: 600px) {
+  .table-wrapper {
+    padding: 1rem;
+
+    .table-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1rem;
+
+      button[mat-raised-button] {
+        width: 100%; // Кнопка "Создать" на всю ширину
+      }
+    }
   }
 }
