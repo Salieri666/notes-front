@@ -4,16 +4,15 @@ import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/
 import { routes } from './app.routes';
 import { provideApiConfiguration } from './_api/api-configuration';
 import { errorInterceptor } from './core/interceptor/error.interceptor';
-// Импортируем новые функциональные элементы
+
 import {
   provideKeycloak,
   includeBearerTokenInterceptor,
   createInterceptorCondition,
   INCLUDE_BEARER_TOKEN_INTERCEPTOR_CONFIG
 } from 'keycloak-angular';
+import {environment} from '../environments/environment';
 
-
-// Альтернатива: условие на основе URL-паттерна для всех HTTP-запросов (например, если All не поддерживается)
 const universalCondition = createInterceptorCondition({
   urlPattern: /^https?:\/\/.*/i,  // Матчит все HTTP/HTTPS URL
   bearerPrefix: 'Bearer'
@@ -25,19 +24,18 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(
       withFetch(),
       withInterceptors([
-        includeBearerTokenInterceptor,  // Функциональный интерцептор для bearer-токена
+        includeBearerTokenInterceptor,
         errorInterceptor
       ])
     ),
-    // Конфигурация условий для интерцептора (используйте allCondition или universalCondition)
     {
       provide: INCLUDE_BEARER_TOKEN_INTERCEPTOR_CONFIG,
-      useValue: [universalCondition]  // Или [universalCondition] для URL-матчинга; можно добавить несколько условий
+      useValue: [universalCondition]
     },
-    provideApiConfiguration('http://localhost:8090/notes-service'),
+    provideApiConfiguration(environment.apiUrl),
     provideKeycloak({
       config: {
-        url: 'http://192.168.0.240:8082',
+        url: environment.keycloakUrl,
         realm: 'notes-realm',
         clientId: 'notes-client-public'
       },

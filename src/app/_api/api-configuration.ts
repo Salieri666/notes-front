@@ -22,6 +22,6 @@ export function provideApiConfiguration(rootUrl: string) {
   providedIn: 'root',
 })
 export class ApiConfiguration {
-  rootUrl: string = 'http://localhost:8090/notes-service';
+  rootUrl: string = 'http://192.168.0.240:8090/notes-service';
 }
 
