@@ -1,0 +1,121 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# ----------------------------
+# Настройки — отредактируй перед запуском
+# ----------------------------
+EMAIL="your-email@example.com"          # <- ЗАМЕНИТЕ на реальный e-mail
+DOMAINS=( "heimlab.ru" "www.heimlab.ru" "auth.heimlab.ru" )
+WEBROOT="/var/www/certbot"
+USE_STAGING=false   # true для тестирования (letsencrypt staging)
+
+# ----------------------------
+# Вспомогательные функции
+# ----------------------------
+log()  { echo "==> $*"; }
+err()  { echo "ERROR: $*" >&2; exit 1; }
+
+domains_args() {
+  for d in "${DOMAINS[@]}"; do printf " -d %s" "$d"; done
+}
+
+# ----------------------------
+# Проверки
+# ----------------------------
+if [ "$EUID" -ne 0 ]; then
+  err "Скрипт должен быть запущен от root (sudo)."
+fi
+
+if [ -z "$EMAIL" ] || [[ "$EMAIL" == "your-email@example.com" ]]; then
+  echo
+  echo "!!! Пожалуйста, укажите реальный EMAIL в переменной EMAIL в начале скрипта."
+  echo
+  exit 1
+fi
+
+log "Домены: ${DOMAINS[*]}"
+log "Webroot: $WEBROOT"
+
+# ----------------------------
+# 1) Подготовка webroot
+# ----------------------------
+log "Создаю webroot и ставлю владельца www-data"
+mkdir -p "$WEBROOT"
+chown www-data:www-data "$WEBROOT"
+chmod 755 "$WEBROOT"
+
+# ----------------------------
+# 2) Установка certbot (если нужно)
+# ----------------------------
+if ! command -v certbot >/dev/null 2>&1; then
+  log "Устанавливаю certbot..."
+  apt update
+  apt install -y certbot
+else
+  log "certbot уже установлен"
+fi
+
+# Убедимся, что python3-certbot-nginx установлен (необязателен, но полезно)
+if ! dpkg -l | grep -q python3-certbot-nginx 2>/dev/null; then
+  apt install -y python3-certbot-nginx || true
+fi
+
+# ----------------------------
+# 3) Внимание: убедитесь, что порт 80 свободен
+# ----------------------------
+log "Проверьте, что порт 80 свободен (если занят — остановите сервис/контейнер вручную)."
+log "Проверка: ss -tlnp | grep ':80' (выведите это отдельно, если нужно)"
+
+# ----------------------------
+# 4) Запрос сертификатов через webroot
+# ----------------------------
+log "Запускаю certbot (webroot) для: ${DOMAINS[*]}"
+STAGING_FLAG=""
+if [ "$USE_STAGING" = true ]; then
+  STAGING_FLAG="--staging"
+  log "Используется staging (test) режим"
+fi
+
+CERTBOT_CMD=( certbot certonly --webroot -w "$WEBROOT" $(domains_args) --email "$EMAIL" --agree-tos --non-interactive $STAGING_FLAG )
+
+log "Выполняю certbot..."
+if "${CERTBOT_CMD[@]}"; then
+  log "certbot: сертификаты получены/обновлены успешно."
+else
+  err "certbot не удалось получить сертификаты. Проверьте вывод certbot и доступность порта 80."
+fi
+
+# ----------------------------
+# 5) Перезагрузка nginx
+# ----------------------------
+log "Проверяю nginx-конфигурацию и перезагружаю nginx"
+if nginx -t; then
+  systemctl reload nginx
+  log "nginx перезагружен"
+else
+  err "nginx -t не прошёл. Исправьте конфиг и попробуйте снова."
+fi
+
+# ----------------------------
+# 6) Тест автоматического обновления
+# ----------------------------
+log "Тестирую certbot renew --dry-run"
+if certbot renew --dry-run; then
+  log "certbot renew --dry-run успешен"
+else
+  log "certbot renew --dry-run вернул ошибку — проверьте /var/log/letsencrypt/letsencrypt.log"
+fi
+
+# ----------------------------
+# 7) Итоги
+# ----------------------------
+log "Итог — пути к сертификатам:"
+for d in "${DOMAINS[@]}"; do
+  if [ -d "/etc/letsencrypt/live/$d" ]; then
+    ls -l "/etc/letsencrypt/live/$d" || true
+  else
+    echo "!!! Сертификаты для $d не найдены в /etc/letsencrypt/live/$d"
+  fi
+done
+
+log "Готово. Откройте https://${DOMAINS[0]} и https://${DOMAINS[2]} и проверьте сертификаты."

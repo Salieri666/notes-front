@@ -1,0 +1,99 @@
+# Minimal and safe nginx config for heimlab.ru + auth.heimlab.ru
+# Proxies /api/... -> http://127.0.0.1:8090/... (strips /api prefix)
+# Frontend is proxied to 127.0.0.1:3000 (adjust if different)
+# Keycloak is proxied to 127.0.0.1:8082
+
+# HTTP -> redirect to HTTPS and ACME
+server {
+    listen 80;
+    listen [::]:80;
+    server_name heimlab.ru www.heimlab.ru auth.heimlab.ru;
+
+    # ACME challenge location
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    # Redirect all other to https
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+# Frontend site (heimlab.ru)
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name heimlab.ru www.heimlab.ru;
+
+    ssl_certificate /etc/letsencrypt/live/heimlab.ru/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/heimlab.ru/privkey.pem;
+    include /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "no-referrer-when-downgrade" always;
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+
+    # === API proxy: strip /api prefix and forward to backend on 127.0.0.1:8090 ===
+    location /api/ {
+        # NOTE: trailing slash on proxy_pass => nginx will remove "/api/" and send the rest
+        proxy_pass http://127.0.0.1:8090/;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # timeouts and buffers (adjust if needed)
+        proxy_connect_timeout 5s;
+        proxy_read_timeout 90s;
+        proxy_buffer_size 16k;
+        proxy_buffers 8 32k;
+        proxy_busy_buffers_size 64k;
+    }
+
+    # === Frontend proxy ===
+    location / {
+        proxy_pass http://127.0.0.1:3000/;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+# Keycloak (auth.heimlab.ru)
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name auth.heimlab.ru;
+
+    ssl_certificate /etc/letsencrypt/live/auth.heimlab.ru/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/auth.heimlab.ru/privkey.pem;
+    include /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "no-referrer-when-downgrade" always;
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    location / {
+        proxy_pass http://127.0.0.1:8082;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_set_header X-Forwarded-Port 443;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $http_connection;
+    }
+}
