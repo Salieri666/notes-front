@@ -1,5 +1,5 @@
 export const environment = {
   production: true,
-  apiUrl: 'http://5.252.116.172:8090/notes-service',
-  keycloakUrl: 'http://5.252.116.172:8082'
+  apiUrl: 'https://heimlab.ru/api/notes-service',
+  keycloakUrl: 'https://auth.heimlab.ru'
 };
